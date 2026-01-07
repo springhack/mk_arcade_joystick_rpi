@@ -144,7 +144,7 @@ module_param_array_named(map, mk_cfg.args, int, &(mk_cfg.nargs), 0);
 MODULE_PARM_DESC(map, "Enable or disable GPIO, MCP23017, TFT and Custom Arcade Joystick");
 
 struct gpio_config {
-    int mk_arcade_gpio_maps_custom[12];
+    int mk_arcade_gpio_maps_custom[13];
     unsigned int nargs;
 };
 
@@ -170,7 +170,7 @@ struct mk_pad {
     enum mk_type type;
     char phys[32];
     int mcp23017addr;
-    int gpio_maps[12];
+    int gpio_maps[13];
 };
 
 struct mk_nin_gpio {
@@ -200,24 +200,24 @@ static struct mk *mk_base;
 
 static const int mk_data_size = 16;
 
-static const int mk_max_arcade_buttons = 12;
+static const int mk_max_arcade_buttons = 13;
 static const int mk_max_mcp_arcade_buttons = 16;
 
-// Map of the gpios :                     up, down, left, right, start, select, a,  b,  tr, y,  x,  tl
-static const int mk_arcade_gpio_maps[] = { 4,  17,    27,  22,    10,    9,      25, 24, 23, 18, 15, 14 };
-// 2nd joystick on the b+ GPIOS                 up, down, left, right, start, select, a,  b,  tr, y,  x,  tl
-static const int mk_arcade_gpio_maps_bplus[] = { 11, 5,    6,    13,    19,    26,     21, 20, 16, 12, 7,  8 };
+// Map of the gpios :                     up, down, left, right, start, select, a,  b,  tr, y,  x,  tl, mode
+static const int mk_arcade_gpio_maps[] = { 4,  17,    27,  22,    10,    9,      25, 24, 23, 18, 15, 14, 2 };
+// 2nd joystick on the b+ GPIOS                 up, down, left, right, start, select, a,  b,  tr, y,  x,  tl, mode
+static const int mk_arcade_gpio_maps_bplus[] = { 11, 5,    6,    13,    19,    26,     21, 20, 16, 12, 7,  8, -1 };
 // Map of the mcp23017 on GPIOA            up, down, left, right, start, select, a,	 b
 static const int mk_arcade_gpioa_maps[] = { 0,  1,    2,    3,     4,     5,	6,	 7 };
 
 // Map of the mcp23017 on GPIOB            tr, y, x, tl, c, tr2, z, tl2
 static const int mk_arcade_gpiob_maps[] = { 0, 1, 2,  3, 4, 5,   6, 7 };
 
-// Map joystick on the b+ GPIOS with TFT      up, down, left, right, start, select, a,  b,  tr, y,  x,  tl
-static const int mk_arcade_gpio_maps_tft[] = { 21, 13,    26,    19,    5,    6,     22, 4, 20, 17, 27,  16 };
+// Map joystick on the b+ GPIOS with TFT      up, down, left, right, start, select, a,  b,  tr, y,  x,  tl, mode
+static const int mk_arcade_gpio_maps_tft[] = { 21, 13,    26,    19,    5,    6,     22, 4, 20, 17, 27,  16, -1 };
 
 static const short mk_arcade_gpio_btn[] = {
-	BTN_START, BTN_SELECT, BTN_A, BTN_B, BTN_TR, BTN_Y, BTN_X, BTN_TL, BTN_C, BTN_TR2, BTN_Z, BTN_TL2
+	BTN_START, BTN_SELECT, BTN_A, BTN_B, BTN_TR, BTN_Y, BTN_X, BTN_TL, BTN_C, BTN_TR2, BTN_Z, BTN_TL2, BTN_MODE
 };
 
 static const char *mk_names[] = {
@@ -283,7 +283,7 @@ static void setGpioAsInput(int gpioNum) {
 static int getPullUpMask(int gpioMap[]){
     int mask = 0x0000000;
     int i;
-    for(i=0; i<12;i++) {
+    for(i=0; i<13;i++) {
         if(gpioMap[i] != -1){   // to avoid unused pins
             int pin_mask  = 1<<gpioMap[i];
             mask = mask | pin_mask;
@@ -506,7 +506,7 @@ static int __init mk_setup_pad(struct mk *mk, int idx, int pad_type_arg) {
         if (gpio_cfg.nargs < 1) {
             pr_err("Custom device needs gpio argument\n");
             return -EINVAL;
-        } else if(gpio_cfg.nargs != 12){
+        } else if(gpio_cfg.nargs != 13){
              pr_err("Invalid gpio argument pad_type=%d\n", pad_type);
              return -EINVAL;
         }
@@ -556,16 +556,16 @@ static int __init mk_setup_pad(struct mk *mk, int idx, int pad_type_arg) {
     // asign gpio pins
     switch (pad_type) {
         case MK_ARCADE_GPIO:
-            memcpy(pad->gpio_maps, mk_arcade_gpio_maps, 12 *sizeof(int));
+            memcpy(pad->gpio_maps, mk_arcade_gpio_maps, 13 *sizeof(int));
             break;
         case MK_ARCADE_GPIO_BPLUS:
-            memcpy(pad->gpio_maps, mk_arcade_gpio_maps_bplus, 12 *sizeof(int));
+            memcpy(pad->gpio_maps, mk_arcade_gpio_maps_bplus, 13 *sizeof(int));
             break;
         case MK_ARCADE_GPIO_TFT:
-            memcpy(pad->gpio_maps, mk_arcade_gpio_maps_tft, 12 *sizeof(int));
+            memcpy(pad->gpio_maps, mk_arcade_gpio_maps_tft, 13 *sizeof(int));
             break;
         case MK_ARCADE_GPIO_CUSTOM:
-            memcpy(pad->gpio_maps, gpio_cfg.mk_arcade_gpio_maps_custom, 12 *sizeof(int));
+            memcpy(pad->gpio_maps, gpio_cfg.mk_arcade_gpio_maps_custom, 13 *sizeof(int));
             break;
         case MK_ARCADE_MCP23017:
             // nothing to asign if MCP23017 is used
