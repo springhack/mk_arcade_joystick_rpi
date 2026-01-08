@@ -32,6 +32,7 @@
 #include <linux/init.h>
 #include <linux/input.h>
 #include <linux/of_device.h>
+#include <linux/of.h>
 #include <linux/mutex.h>
 #include <linux/slab.h>
 
@@ -198,7 +199,7 @@ struct mk_subdev {
 
 static struct mk *mk_base;
 
-static const int mk_data_size = 16;
+enum { mk_data_size = 16 };
 
 static const int mk_max_arcade_buttons = 13;
 static const int mk_max_mcp_arcade_buttons = 16;
